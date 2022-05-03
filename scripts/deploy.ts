@@ -1,30 +1,40 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-import { ethers } from "hardhat";
+const hre = require("hardhat");
 
-async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+const main = async () => {
+  const domainContractFactory = await hre.ethers.getContractFactory("Domains");
+  const domainContract = await domainContractFactory.deploy("matic");
+  await domainContract.deployed();
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  console.log("Contract deployed to:", domainContract.address);
 
-  await greeter.deployed();
+  // CHANGE THIS DOMAIN TO SOMETHING ELSE! I don't want to see OpenSea full of bananas lol
+  let txn = await domainContract.register("banana", {
+    value: hre.ethers.utils.parseEther("0.1"),
+  });
+  await txn.wait();
+  console.log("Minted domain banana.ninja");
 
-  console.log("Greeter deployed to:", greeter.address);
-}
+  txn = await domainContract.setRecord("banana", "Am I a banana or a ninja??");
+  await txn.wait();
+  console.log("Set record for banana.ninja");
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  const address = await domainContract.getAddress("banana");
+  console.log("Owner of domain banana:", address);
+
+  const balance = await hre.ethers.provider.getBalance(domainContract.address);
+  console.log("Contract balance:", hre.ethers.utils.formatEther(balance));
+};
+
+const runMain = async () => {
+  try {
+    await main();
+    // eslint-disable-next-line no-process-exit
+    process.exit(0);
+  } catch (error) {
+    console.log(error);
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
+  }
+};
+
+runMain();
