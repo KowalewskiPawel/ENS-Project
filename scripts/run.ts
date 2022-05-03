@@ -3,25 +3,26 @@
 import { ethers } from "hardhat";
 
 const main = async () => {
-  // eslint-disable-next-line no-undef
-  const [owner, randomPerson] = await ethers.getSigners();
   const domainContractFactory = await ethers.getContractFactory("Domains");
-  const domainContract = await domainContractFactory.deploy();
-  await domainContract.deployed();
-  console.log("Contract deployed to:", domainContract.address);
-  console.log("Contract deployed by:", owner.address);
-
-  let txn = await domainContract.register("doom");
+  // We pass in "ninja" to the constructor when deploying
   /* @ts-ignore */
+  const domainContract = await domainContractFactory.deploy("ninja");
+  await domainContract.deployed();
+
+  console.log("Contract deployed to:", domainContract.address);
+
+  // We're passing in a second variable - value. This is the moneyyyyyyyyyy
+  const txn = await domainContract.register("mortal", {
+    /* @ts-ignore */
+    value: ethers.utils.parseEther("0.1"),
+  });
   await txn.wait();
 
-  const domainOwner = await domainContract.getAddress("doom");
-  console.log("Owner of domain:", domainOwner);
+  const address = await domainContract.getAddress("mortal");
+  console.log("Owner of domain mortal:", address);
 
-  txn = await domainContract
-    .connect(randomPerson)
-    .setRecord("doom", "Haha my domain now!");
-  await txn.wait();
+  const balance = await ethers.provider.getBalance(domainContract.address);
+  console.log("Contract balance:", ethers.utils.formatEther(balance));
 };
 
 const runMain = async () => {
