@@ -7,7 +7,6 @@ const main = async () => {
 
   console.log("Contract deployed to:", domainContract.address);
 
-  // CHANGE THIS DOMAIN TO SOMETHING ELSE! I don't want to see OpenSea full of bananas lol
   let txn = await domainContract.register("banana", {
     value: hre.ethers.utils.parseEther("0.1"),
   });
